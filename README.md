@@ -55,7 +55,7 @@ If everything goes well, you'll receive a response like this :
 }
 ```
 
-Your latest greeting send would be then be visible on 
+Your latest sent greeting would be visible on 
 the WP Admin Dashboard.
 
 Enjoy !
