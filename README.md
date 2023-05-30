@@ -10,6 +10,10 @@ Requirements
 
   * PHP 7.0 or higher;
   * WP Installation v5 or higher
+  * Change your Wordpress Permalink structure to Post Name. 
+  To do this, go to, Settings >> Permalinks >> Choose Post Name 
+  as Permalink Structure. Save !
+  
 
 Installation
 ------------
