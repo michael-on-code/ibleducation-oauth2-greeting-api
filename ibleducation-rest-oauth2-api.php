@@ -81,8 +81,7 @@ function run_ibleducation_rest_oauth2_api() {
 
 	$plugin = new Ibleducation_Rest_Oauth2_Api();
 	$plugin->run();
-	$restifyer = new Restify();
-	$restifyer->run();
+
 
 }
 run_ibleducation_rest_oauth2_api();

@@ -84,35 +84,38 @@ class Restify {
   public_key          VARCHAR(2000)   NOT NULL
 );";
 		dbDelta( $sql );
-		$sql = "SELECT COUNT(*) as nbr FROM oauth_clients where client_id = '{$this->_defaultClientID}'";
-		$result = $wpdb->get_row($sql);
-		if(self::maybeNullOrEmpty($result, 'nbr')==0){
+		$sql    = "SELECT COUNT(*) as nbr FROM oauth_clients where client_id = '{$this->_defaultClientID}'";
+		$result = $wpdb->get_row( $sql );
+		if ( self::maybeNullOrEmpty( $result, 'nbr' ) == 0 ) {
 			$sql = "INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES
-('{$this->_defaultClientID}', '$this->_defaultClientID', '$siteUrl');";
+('{$this->_defaultClientID}', '$this->_defaultClientSecret', '$siteUrl');";
 			dbDelta( $sql );
 		}
 		/*$is_error = empty( $wpdb->last_error);
 		var_dump($is_error);exit;*/
 	}
 
-	public function run(){
-		add_action('wp_dashboard_setup', [$this, 'my_custom_dashboard_widgets']);
+	public function run() {
+		add_action( 'rest_api_init', [ $this, "regestering_route" ] );
+		add_action( 'wp_dashboard_setup', [ $this, 'my_custom_dashboard_widgets' ] );
 	}
 
-	public function my_custom_dashboard_widgets(){
-		$greentingHasBeenSet = get_option($this->_dbGreetingHasBeenSet);
-		if(!!$greentingHasBeenSet){
+	public function my_custom_dashboard_widgets() {
+		$greentingHasBeenSet = get_option( $this->_dbGreetingHasBeenSet );
+		if ( ! ! $greentingHasBeenSet ) {
 			global $wp_meta_boxes;
-			wp_add_dashboard_widget('custom_help_widget', 'WP Rest API Greeting', [$this, "greeting_dashboard_show"]);
+			wp_add_dashboard_widget( 'custom_help_widget', 'WP Rest API Greeting', [
+				$this,
+				"greeting_dashboard_show"
+			] );
 		}
 
 	}
 
 	public function greeting_dashboard_show() {
-		$greetingMsg = get_option($this->_dbGreetingKey);
-		echo '<p>'.$greetingMsg.'</p>';
+		$greetingMsg = get_option( $this->_dbGreetingKey );
+		echo '<p>' . $greetingMsg . '</p>';
 	}
-
 
 
 	public function regestering_route() {
@@ -120,23 +123,25 @@ class Restify {
 			'methods'  => 'POST',
 			'callback' => [ $this, 'request_generate_token' ],
 		] );
+
 		register_rest_route( 'greetingbot/v1', '/send', array(
 			'methods'  => 'POST',
 			'callback' => [ $this, 'save_greetings' ],
 		) );
 	}
 
-	public function request_access_token_validator(){
+	public function request_access_token_validator() {
 		$server = $this->OAuth2Server();
-		if (!$server->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
+		if ( ! $server->verifyResourceRequest( OAuth2\Request::createFromGlobals() ) ) {
 			$server->getResponse()->send();
 			die;
 		}
+
 		return true;
 	}
 
-	public function OAuth2Server(){
-		require_once plugin_dir_path(__FILE__)."OAuth2/Autoloader.php";
+	public function OAuth2Server() {
+		require_once plugin_dir_path( __FILE__ ) . "OAuth2/Autoloader.php";
 		\OAuth2\Autoloader::register();
 
 		$dsn      = 'mysql:dbname=' . DB_NAME . ';host=' . DB_HOST;
@@ -147,26 +152,34 @@ class Restify {
 		$server = new OAuth2\Server( $storage );
 		$server->addGrantType( new OAuth2\GrantType\ClientCredentials( $storage ) );
 		$server->addGrantType( new OAuth2\GrantType\AuthorizationCode( $storage ) );
+
 		return $server;
 
 	}
 
-	public function request_generate_token(WP_REST_Request $request) {
+	public function request_generate_token( WP_REST_Request $request ) {
 		$server = $this->OAuth2Server();
 
-		return $server->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
+		return $server->handleTokenRequest( OAuth2\Request::createFromGlobals() )->send();
 	}
 
 	public function save_greetings( WP_REST_Request $request ) {
-		if($this->request_access_token_validator()){
-			$parameters             = [];
-			$requestBody = json_decode( $request->get_body() );
-			$greeting =  self::maybeNullOrEmpty($requestBody, 'greeting');
-			$sanitizedGreeting = sanitize_text_field($greeting);
-			update_option($this->_dbGreetingKey, $sanitizedGreeting);
-			update_option($this->_dbGreetingHasBeenSet, '1');
-			return $this->getSuccessResponse( [ 'message' => "Greeting Message Updated Successfully",
-				"status"=>true] );
+		if ( $this->request_access_token_validator() ) {
+			$requestBody       = json_decode( $request->get_body() );
+			$greeting          = self::maybeNullOrEmpty( $requestBody, 'greeting' );
+			$sanitizedGreeting = sanitize_text_field( $greeting );
+			if ( ! $greeting || $greeting == "" ) {
+				return $this->getSuccessResponse( [
+					'message' => "Empty greeting message sent! Fill in the message and retry !"
+				], false );
+			}
+			update_option( $this->_dbGreetingKey, $sanitizedGreeting );
+			update_option( $this->_dbGreetingHasBeenSet, '1' );
+
+			return $this->getSuccessResponse( [
+				'message' => "Greeting Message Updated Successfully",
+				"status"  => true
+			] );
 		}
 
 	}

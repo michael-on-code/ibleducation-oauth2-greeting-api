@@ -35,7 +35,7 @@ class Ibleducation_Rest_Oauth2_Api {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Ibleducation_Rest_Oauth2_Api_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      Ibleducation_Rest_Oauth2_Api_Loader $loader Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -44,7 +44,7 @@ class Ibleducation_Rest_Oauth2_Api {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      string    $plugin_name    The string used to uniquely identify this plugin.
+	 * @var      string $plugin_name The string used to uniquely identify this plugin.
 	 */
 	protected $plugin_name;
 
@@ -53,7 +53,7 @@ class Ibleducation_Rest_Oauth2_Api {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      string    $version    The current version of the plugin.
+	 * @var      string $version The current version of the plugin.
 	 */
 	protected $version;
 
@@ -116,12 +116,6 @@ class Ibleducation_Rest_Oauth2_Api {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-ibleducation-rest-oauth2-api-admin.php';
 
-		/**
-		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-ibleducation-rest-oauth2-api-public.php';
-
 		$this->loader = new Ibleducation_Rest_Oauth2_Api_Loader();
 
 	}
@@ -157,11 +151,10 @@ class Ibleducation_Rest_Oauth2_Api {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
-		//REST API
-		require_once "Restify.php";
-		$rest = new Restify();
-		add_action('rest_api_init', [$rest, "regestering_route"]);
-
+		require_once plugin_dir_path( __FILE__ ) . 'Restify.php';
+		$restifyer = new Restify();
+		$this->loader->add_action( 'rest_api_init', $restifyer, 'regestering_route' );
+		$this->loader->add_action( 'wp_dashboard_setup', $restifyer, 'my_custom_dashboard_widgets' );
 	}
 
 	/**
@@ -193,8 +186,8 @@ class Ibleducation_Rest_Oauth2_Api {
 	 * The name of the plugin used to uniquely identify it within the context of
 	 * WordPress and to define internationalization functionality.
 	 *
-	 * @since     1.0.0
 	 * @return    string    The name of the plugin.
+	 * @since     1.0.0
 	 */
 	public function get_plugin_name() {
 		return $this->plugin_name;
@@ -203,8 +196,8 @@ class Ibleducation_Rest_Oauth2_Api {
 	/**
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
-	 * @since     1.0.0
 	 * @return    Ibleducation_Rest_Oauth2_Api_Loader    Orchestrates the hooks of the plugin.
+	 * @since     1.0.0
 	 */
 	public function get_loader() {
 		return $this->loader;
@@ -213,8 +206,8 @@ class Ibleducation_Rest_Oauth2_Api {
 	/**
 	 * Retrieve the version number of the plugin.
 	 *
-	 * @since     1.0.0
 	 * @return    string    The version number of the plugin.
+	 * @since     1.0.0
 	 */
 	public function get_version() {
 		return $this->version;
