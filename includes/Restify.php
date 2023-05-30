@@ -122,11 +122,17 @@ class Restify {
 		register_rest_route( 'greetingbot/v1', '/login', [
 			'methods'  => 'POST',
 			'callback' => [ $this, 'request_generate_token' ],
+			'permission_callback'=> function(){
+				return true;
+			}
 		] );
 
 		register_rest_route( 'greetingbot/v1', '/send', array(
 			'methods'  => 'POST',
 			'callback' => [ $this, 'save_greetings' ],
+			'permission_callback'=> function(){
+				return true;
+			}
 		) );
 	}
 
