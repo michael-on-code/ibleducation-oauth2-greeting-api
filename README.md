@@ -38,7 +38,7 @@ It requires :
 
 REST API
 -----
-The available REST API Endpoint is : <site_url>/wp_json/greetingbot/v1/send
+The available REST API Endpoint is : <site_url>/wp-json/greetingbot/v1/send
 
 It requires a body parameter : greeting
 
